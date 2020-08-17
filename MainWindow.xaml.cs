@@ -1,19 +1,7 @@
 ﻿using Microsoft.Win32;
-using System;
-using System.Collections.Generic;
 using System.IO;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
-using System.Windows.Data;
-using System.Windows.Documents;
-using System.Windows.Input;
-using System.Windows.Media;
-using System.Windows.Media.Imaging;
-using System.Windows.Navigation;
-using System.Windows.Shapes;
 
 namespace Notepad___
 {
@@ -26,18 +14,25 @@ namespace Notepad___
         string DateiName = "Unbenannt";
         SaveFileDialog s = new SaveFileDialog();
         OpenFileDialog o = new OpenFileDialog();
+        bool umbruch = false;
 
+        /// <summary>
+        /// Main Window
+        /// </summary>
         public MainWindow()
         {
             InitializeComponent();
             SetTitle(DateiGespeichert, DateiName); 
-            s.Filter = "Text Files (*.txt)|*.txt" + "|" +
-                     "Image Files (*.png;*.jpg)|*.png;*.jpg" + "|" +
-                     "All Files (*.*)|*.*";
+            s.Filter = "Text Files (*.txt)|*.txt" + "|" + "Image Files (*.png;*.jpg)|*.png;*.jpg" + "|" + "All Files (*.*)|*.*";
             s.Title = "Save";
             
         }
 
+        /// <summary>
+        /// SetTitle changes the title of the main window depending on whether the file is saved or not and if its name is not empty 
+        /// </summary>
+        /// <param name="gesp"></param>
+        /// <param name="name"></param>
         public void SetTitle(bool gesp, string name)
         {
             if(gesp && name == "")
@@ -56,12 +51,6 @@ namespace Notepad___
             {
                 Mein_Editor.Title = "*" + name + " - Editor";
             }
-            //s.FileName = name;
-            //s.ShowDialog(); 
-            //if(s.ShowDialog() == DialogResult.OK)
-            //{
-  
-            //}
         }
         private void MenuItem_Click(object sender, RoutedEventArgs e)
         {
@@ -71,83 +60,213 @@ namespace Notepad___
             switch (header)
             {
                 case "Neu":
-                    CreateNewFile();
+                    //CreateNewFile();
                     break;
                 case "Speichern":
                     Speichern();
                     break;
                 case "Öffnen":
-                    OeffnenFile();
+                    OeffnenFile(e);
+                    break;
+                case "Speichern unter":
+                    SpeichenrUnter();
+                    break;
+                case "Beenden":
+                    Close();
+                    break;
+                case "Zeit":
+                    break;
+                case "Zeilenumbruch":
+                    ZeilenUmbruchUmschalten();
                     break;
             };
       
         }
 
+        #region Speichern
         private void Speichern()
         {
-            if (DateiGespeichert)
+            if(File.Exists(DateiName) && !DateiGespeichert)
             {
-                //Tbox.Text = "";
+                SpeichernOhneDialog();
             }
-            else
+            else if(!File.Exists(DateiName) && !DateiGespeichert)
+            {
+                SpeichenrUnter();
+            }
+        }
+
+        public void SpeichernOhneDialog()
+        {
+            File.WriteAllText(DateiName, Tbox.Text);
+            DateiGespeichert = true;
+
+            GetFilenameFromPath(DateiName);
+            Tbox.Focus();
+        }
+
+        public void SpeichenrUnter ()
+        {
+            if (s.ShowDialog() == true)
+            {
+                File.WriteAllText(s.FileName, Tbox.Text);
+                if (s.FileName != "")
+                {
+                    Tbox.Text = File.ReadAllText(s.FileName);
+                    DateiGespeichert = true;
+                    GetFilenameFromPath(s.FileName);
+                }
+            }
+            Tbox.Focus();
+        }
+        #endregion
+
+        /// <summary>
+        /// calls open file dialog and opens the file
+        /// </summary>
+        private void OeffnenFile(RoutedEventArgs e)
+        {
+
+            bool open = true ;
+            if (!DateiGespeichert)
+            {
+
+               open = DialogZeigen(e);
+                
+            }
+            if (open)
+            {
+                if (o.ShowDialog() == true)
+                {
+
+                    System.IO.StreamReader sr = new StreamReader(o.FileName);
+                    Tbox.Text = sr.ReadToEnd();
+                    //Tbox.Text = File.ReadAllText(o.FileName);
+                    DateiGespeichert = true;
+
+                    DateiName = o.FileName;
+
+                    GetFilenameFromPath(o.FileName);
+                    sr.Close();
+                    //Tbox.Undo();  
+                }
+            }
+        }
+        
+
+
+        /// <summary>
+        /// If text has been changed 
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="e"></param>
+        private void Tbox_TextChanged(object sender, TextChangedEventArgs e)
+        {
+            DateiGespeichert = false;
+            GetFilenameFromPath(DateiName);
+        }
+
+        /// <summary>
+        /// Gets file name from the file path and calls SetTitle function
+        /// </summary>
+        /// <param name="filePath"></param>
+        private void GetFilenameFromPath (string filePath)
+        {
+            string[] pathArray = filePath.Split('\\');
+
+            string pureName = pathArray[pathArray.Length - 1];
+
+            SetTitle(DateiGespeichert, pureName);
+        }
+
+
+        #region
+
+        private bool DialogZeigen(RoutedEventArgs e)
+        {
+
+            bool open = true;
+            if (!DateiGespeichert)
+            {
+                
+                MessageBoxResult erg = MessageBox.Show("Die Daten werden nicht gespeichert. Speichern?", "Achtung", MessageBoxButton.YesNoCancel, MessageBoxImage.Question);
+
+                switch (erg.ToString())
+                {
+                    case "Yes":
+                        if (File.Exists(DateiName))
+                        {
+                            SpeichernOhneDialog();
+                        }
+                        else
+                        {
+                            SpeichenrUnter();
+                        }
+
+                        break;
+
+                    case "No":
+                        //open = false;
+                        break;
+                    case "Cancel":
+                        open = false;
+                        return open;
+                }
+            }
+            return open;
+        }
+        private bool DialogZeigen(System.ComponentModel.CancelEventArgs e)
+        {
+            bool open = true;
+            if (!DateiGespeichert)
             {
                 MessageBoxResult erg = MessageBox.Show("Die Daten werden nicht gespeichert. Speichern?", "Achtung", MessageBoxButton.YesNoCancel, MessageBoxImage.Question);
 
                 switch (erg.ToString())
                 {
                     case "Yes":
-                        //if(File.Exists(@"C:\Users\alex\Documents\sdfa.txt"))
                         if (File.Exists(DateiName))
                         {
-                            File.WriteAllText(s.FileName, Tbox.Text);
+                            SpeichernOhneDialog();
                         }
                         else
                         {
-
-                            if (s.ShowDialog() == true)
-                            {
-                                File.WriteAllText(s.FileName, Tbox.Text);
-                            }
-                            Tbox.Text = File.ReadAllText(o.FileName);
-                            DateiName = o.FileName;
-                            SetTitle(DateiGespeichert, DateiName);
+                            SpeichenrUnter();
                         }
-                        DateiGespeichert = true;
-                        SetTitle(DateiGespeichert, DateiName = s.FileName);
-                        Tbox.Clear();
-                        DateiGespeichert = true;
 
-                        string [] pathArray = s.FileName.Split('\\');
-                        DateiName = pathArray[pathArray.Length - 1];
-            
-                        SetTitle(DateiGespeichert, DateiName);
                         break;
-                    case "Cansel":
+
+                    case "No":
+                        //Close();
+                        open = false;
+                        break;
+                    case "Cancel":
+                        open = false;
+                        //e.Cancel = true;
                         break;
                 }
             }
+            return open;
         }
 
-        private void OeffnenFile()
+        #endregion
+        private void Mein_Editor_Closing(object sender, System.ComponentModel.CancelEventArgs e)
         {
-            if (o.ShowDialog() == true)
+            DialogZeigen(e);
+        }
+
+
+        private void ZeilenUmbruchUmschalten()
+        {
+             umbruch = !umbruch;
+            if(umbruch)
             {
-                Tbox.Text = File.ReadAllText(o.FileName);
-                DateiName = o.FileName;
-                SetTitle(DateiGespeichert, DateiName);
+                Tbox.TextWrapping = TextWrapping.Wrap;
             }
-        }
-
-        private void CreateNewFile()
-        {
-
-        }
-
-        private void Tbox_TextChanged(object sender, TextChangedEventArgs e)
-        {
-            //MessageBox.Show("asdf");
-            DateiGespeichert = false;
-            SetTitle(DateiGespeichert, DateiName);
+            else
+            {
+                Tbox.TextWrapping = TextWrapping.NoWrap;
+            }
         }
     }
 }

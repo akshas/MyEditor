@@ -5,6 +5,7 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:Notepad___"
         mc:Ignorable="d"
+        Closing="Mein_Editor_Closing"
         Title="Editor" Height="450" Width="800">
     <Grid>
         <Grid.RowDefinitions>
@@ -23,7 +24,7 @@
             </MenuItem>
             <MenuItem Header="Bearbeiten">
                 <MenuItem  Header="Speichern" Click="MenuItem_Click"/>
-                <MenuItem  Header="Speichern" Click="MenuItem_Click"/>
+                <MenuItem  Header="Zeit" Click="MenuItem_Click"/>
 
             </MenuItem>
             <MenuItem Header="Format">
