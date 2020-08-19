@@ -1,13 +1,17 @@
 ﻿using Microsoft.Win32;
+using System;
 using System.IO;
 using System.Windows;
 using System.Windows.Controls;
+using System.Windows.Media;
+//using System.Windows.Forms;
 
 namespace Notepad___
 {
     /// <summary>
     /// Interaction logic for MainWindow.xaml
     /// </summary>
+    /// 
     public partial class MainWindow : Window
     {
         bool DateiGespeichert = true;
@@ -75,12 +79,54 @@ namespace Notepad___
                     Close();
                     break;
                 case "Zeit":
+                    zeitHinzufuegen();
+                    break;
+                case "Schriftarten":
+                    fontDialogAufrufen();
+                    break;
+                case "Font Color":
+                    ColorDialogAufrufen("f");
+                    break;
+                case "Background Color":
+                    ColorDialogAufrufen("b");
                     break;
                 case "Zeilenumbruch":
                     ZeilenUmbruchUmschalten();
                     break;
             };
       
+        }
+
+        private void ColorDialogAufrufen(string was)
+        {
+            System.Windows.Forms.ColorDialog colorDialog = new System.Windows.Forms.ColorDialog();
+            if (colorDialog.ShowDialog() == System.Windows.Forms.DialogResult.OK)
+            {
+                if(was == "f")
+                    Tbox.Foreground = new SolidColorBrush(Color.FromArgb(colorDialog.Color.A, colorDialog.Color.R, colorDialog.Color.G, colorDialog.Color.B)) ;
+                else
+                    Tbox.Background = new SolidColorBrush(Color.FromArgb(colorDialog.Color.A, colorDialog.Color.R, colorDialog.Color.G, colorDialog.Color.B)) ;
+            }
+        }
+
+        private void fontDialogAufrufen()
+        {
+
+            System.Windows.Forms.FontDialog fontDialog = new System.Windows.Forms.FontDialog();
+            if(fontDialog.ShowDialog() == System.Windows.Forms.DialogResult.OK)
+            {
+                Tbox.FontFamily = new System.Windows.Media.FontFamily(fontDialog.Font.Name);
+                Tbox.FontSize = fontDialog.Font.Size;
+                Tbox.FontWeight = fontDialog.Font.Bold ? FontWeights.Bold : FontWeights.Regular;
+                Tbox.FontStyle = fontDialog.Font.Italic ? FontStyles.Italic : FontStyles.Normal;
+            }
+
+        }
+
+        private void zeitHinzufuegen()
+        {
+            DateTime zeit = DateTime.Now;
+            Tbox.Text += zeit.ToString("hh:mm dd.MM.yyyy");
         }
 
         #region Speichern

@@ -29,6 +29,8 @@
             </MenuItem>
             <MenuItem Header="Format">
                 <MenuItem  Header="Zeilenumbruch" Click="MenuItem_Click"/>
+                <MenuItem  Header="Font Color" Click="MenuItem_Click"/>
+                <MenuItem  Header="Background Color" Click="MenuItem_Click"/>
                 <MenuItem  Header="Schriftarten" Click="MenuItem_Click"/>
 
             </MenuItem>
